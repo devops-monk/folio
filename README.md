@@ -42,8 +42,9 @@ npm run test:e2e # browser tests (Playwright, uses your installed Chrome)
 Pushing to `main` builds and publishes to GitHub Pages via `.github/workflows/deploy.yml`.
 One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
-The app uses a relative base path and hash routing (`#/sign-pdf`), so it works at
-`https://<user>.github.io/folio/` or on a custom domain with no config changes.
+Live at **https://folio.devops-monk.com/** (custom domain via `public/CNAME`; DNS has a
+`CNAME folio → devops-monk.github.io` record). The app uses a relative base path and hash
+routing (`#/sign-pdf`), so it also works at `https://devops-monk.github.io/folio/`.
 
 ## Tech
 
