@@ -77,7 +77,8 @@ export const tools: ToolDef[] = [
     accept: PDF,
     multiple: false,
     phase: 1,
-    ready: false,
+    ready: true,
+    workspace: true,
   },
   {
     id: 'fill-form',

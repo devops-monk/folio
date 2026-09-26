@@ -202,7 +202,7 @@
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   animation: toast-in 0.4s var(--spring);
-  z-index: 10;
+  z-index: 200;
 }
 
 @keyframes toast-in {
@@ -698,5 +698,24 @@
 @media (max-width: 480px) {
   .ws-title {
     display: none;
+  }
+
+  .ws-toolbar {
+    padding-left: 4px;
+    padding-right: 8px;
+    gap: 2px;
+  }
+
+  .tb-button {
+    min-width: 32px;
+    padding: 0 4px;
+  }
+
+  .tb-button.labeled {
+    padding: 0 6px;
+  }
+
+  .ws-download {
+    margin-left: 2px;
   }
 }

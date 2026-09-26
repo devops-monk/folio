@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   Download,
   Highlighter,
@@ -7,6 +8,7 @@ import {
   Minus,
   Plus,
   Redo2,
+  Signature,
   Square,
   Type,
   Undo2,
@@ -19,6 +21,8 @@ import { PageCanvas } from './PageCanvas'
 import { OverlayItem } from './OverlayItem'
 import { Inspector } from './Inspector'
 import { loadImageForPdf } from './images'
+import { SignatureSheet } from './signature/SignatureSheet'
+import type { SignatureImage } from './signature/render'
 import './Workspace.css'
 
 interface Props {
@@ -52,7 +56,7 @@ export default function Workspace({ file, tool, onClose }: Props) {
 
   return (
     <div className="workspace" role="application" aria-label={`${tool.name} workspace`}>
-      <Toolbar onClose={close} />
+      <Toolbar onClose={close} autoSign={tool.id === 'sign-pdf'} />
       {status === 'ready' ? (
         <div className="ws-body">
           <Thumbnails />
@@ -79,12 +83,30 @@ export default function Workspace({ file, tool, onClose }: Props) {
 
 /* ─── Toolbar ───────────────────────────────────────────────────── */
 
-function Toolbar({ onClose }: { onClose: () => void }) {
+function Toolbar({ onClose, autoSign }: { onClose: () => void; autoSign: boolean }) {
   const ws = useWorkspace()
   const imageInput = useRef<HTMLInputElement>(null)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [signing, setSigning] = useState(false)
   const ready = ws.status === 'ready'
+
+  // The Sign PDF tool opens the signature sheet as soon as the document is ready.
+  const autoOpened = useRef(false)
+  useEffect(() => {
+    if (autoSign && ready && !autoOpened.current) {
+      autoOpened.current = true
+      setSigning(true)
+    }
+  }, [autoSign, ready])
+
+  const insertSignature = (sig: SignatureImage) => {
+    setSigning(false)
+    const page = ws.pages[ws.currentPage]
+    const w = 0.28
+    const h = (w * page.width * (sig.height / sig.width)) / page.height
+    ws.add({ id: crypto.randomUUID(), kind: 'image', src: sig.src, ...placeOnCurrentPage(w, Math.min(h, 0.3)) })
+  }
 
   // New objects appear centered near the top third; if that spot is taken,
   // cascade downward so they don't stack exactly on top of each other.
@@ -162,7 +184,7 @@ function Toolbar({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const s = useWorkspace.getState()
-      if (s.status !== 'ready') return
+      if (s.status !== 'ready' || signing) return
       const inField = (e.target as HTMLElement)?.closest('input, textarea, select, [contenteditable]')
       const mod = e.metaKey || e.ctrlKey
       const key = e.key.toLowerCase()
@@ -207,6 +229,9 @@ function Toolbar({ onClose }: { onClose: () => void }) {
       } else if (key === 't' && !mod) {
         e.preventDefault()
         addText()
+      } else if (key === 's' && !mod) {
+        e.preventDefault()
+        setSigning(true)
       }
     }
     window.addEventListener('keydown', onKey)
@@ -230,6 +255,16 @@ function Toolbar({ onClose }: { onClose: () => void }) {
       </div>
 
       <div className="ws-toolbar-group ws-tools" aria-label="Insert">
+        <button
+          className="tb-button labeled"
+          onClick={() => setSigning(true)}
+          disabled={!ready}
+          aria-label="Sign"
+          title="Add signature (S)"
+        >
+          <Signature size={18} />
+          <span>Sign</span>
+        </button>
         <button className="tb-button labeled" onClick={addText} disabled={!ready} aria-label="Text" title="Add text (T)">
           <Type size={18} />
           <span>Text</span>
@@ -289,11 +324,19 @@ function Toolbar({ onClose }: { onClose: () => void }) {
         </button>
       </div>
 
-      {toast && (
-        <div className="ws-toast" role="status">
-          {toast}
-        </div>
-      )}
+      {/* Portaled: the toolbar's backdrop-filter would otherwise trap position: fixed. */}
+      {signing &&
+        createPortal(
+          <SignatureSheet onInsert={insertSignature} onClose={() => setSigning(false)} />,
+          document.body,
+        )}
+      {toast &&
+        createPortal(
+          <div className="ws-toast" role="status">
+            {toast}
+          </div>,
+          document.body,
+        )}
     </header>
   )
 }
