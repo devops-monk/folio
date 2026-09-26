@@ -1,0 +1,90 @@
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bar);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 0.5px solid var(--separator);
+  padding-top: env(safe-area-inset-top);
+}
+
+.navbar-inner {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+
+.brand img {
+  border-radius: 7px;
+  box-shadow: var(--shadow-sm);
+}
+
+.navbar-trailing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.privacy-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--green);
+  background: color-mix(in srgb, var(--green) 13%, transparent);
+}
+
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-2);
+  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+}
+
+.icon-button:hover {
+  background: var(--fill);
+  color: var(--text);
+}
+
+.icon-button:active {
+  background: var(--fill-strong);
+}
+
+.main {
+  flex: 1;
+}
+
+.footer {
+  padding-top: 40px;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom));
+  color: var(--text-3);
+  font-size: 13px;
+  text-align: center;
+}

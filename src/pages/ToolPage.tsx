@@ -1,0 +1,80 @@
+import { useEffect, useState, type CSSProperties } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { ChevronLeft, FileText, ShieldCheck } from 'lucide-react'
+import { getCategory, getTool, type ToolDef } from '../tools/registry'
+import { DropZone } from '../components/DropZone'
+import { NotFound } from './NotFound'
+import './ToolPage.css'
+
+function formatSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${(bytes / 1024 ** 2).toFixed(1)} MB`
+}
+
+export function ToolPage() {
+  const tool = getTool(useParams().toolId)
+  if (!tool) return <NotFound />
+  // Keyed so switching tools starts with fresh state.
+  return <ToolView key={tool.id} tool={tool} />
+}
+
+function ToolView({ tool }: { tool: ToolDef }) {
+  const [files, setFiles] = useState<File[]>([])
+
+  useEffect(() => {
+    document.title = `${tool.name} — Folio`
+    return () => {
+      document.title = 'Folio — Private PDF Tools'
+    }
+  }, [tool])
+
+  const Icon = tool.icon
+  const tint = getCategory(tool.category).tint
+
+  return (
+    <div className="tool-page container" style={{ '--tint': tint } as CSSProperties}>
+      <Link to="/" className="back-link">
+        <ChevronLeft size={20} strokeWidth={2.4} aria-hidden />
+        All tools
+      </Link>
+
+      <header className="tool-header">
+        <span className="tool-header-icon" aria-hidden>
+          <Icon size={30} strokeWidth={1.9} />
+        </span>
+        <h1>{tool.name}</h1>
+        <p>{tool.description}</p>
+      </header>
+
+      {files.length === 0 ? (
+        <DropZone accept={tool.accept} multiple={tool.multiple} onFiles={setFiles} />
+      ) : (
+        <section className="file-card" aria-label="Selected files">
+          <ul>
+            {files.map((f, i) => (
+              <li key={`${f.name}-${i}`}>
+                <FileText size={20} aria-hidden />
+                <span className="file-name">{f.name}</span>
+                <span className="file-size">{formatSize(f.size)}</span>
+              </li>
+            ))}
+          </ul>
+          {!tool.ready && (
+            <p className="file-note">
+              The {tool.name} workspace is on its way. Your file stayed on this device.
+            </p>
+          )}
+          <button className="button-secondary" onClick={() => setFiles([])}>
+            Choose different files
+          </button>
+        </section>
+      )}
+
+      <p className="privacy-note">
+        <ShieldCheck size={16} aria-hidden />
+        Processed on your device. Files are never uploaded.
+      </p>
+    </div>
+  )
+}

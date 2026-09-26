@@ -1,0 +1,65 @@
+.tool-tile {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm), inset 0 0 0 0.5px var(--separator);
+  transition: transform 0.35s var(--spring), box-shadow 0.25s var(--ease);
+}
+
+@media (hover: hover) {
+  .tool-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg), inset 0 0 0 0.5px var(--separator);
+  }
+}
+
+.tool-tile:active {
+  transform: scale(0.98);
+  transition-duration: 0.1s;
+}
+
+.tool-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  color: var(--tint);
+  background: color-mix(in srgb, var(--tint) 14%, transparent);
+}
+
+.tool-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.tool-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.tool-desc {
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--text-2);
+}
+
+.soon {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 1px 7px;
+  border-radius: 999px;
+  color: var(--text-2);
+  background: var(--fill);
+}

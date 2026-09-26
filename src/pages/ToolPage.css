@@ -1,0 +1,135 @@
+.tool-page {
+  max-width: 720px;
+  padding-top: 16px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: -6px;
+  padding: 6px 8px 6px 2px;
+  border-radius: var(--r-sm);
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.back-link:hover {
+  background: var(--fill);
+}
+
+.tool-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 24px 0 32px;
+}
+
+.tool-header-icon {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 20px;
+  color: var(--tint);
+  background: color-mix(in srgb, var(--tint) 14%, transparent);
+  margin-bottom: 6px;
+}
+
+.tool-header h1 {
+  font-size: clamp(30px, 6vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.tool-header p {
+  max-width: 460px;
+  color: var(--text-2);
+  font-size: 17px;
+}
+
+.file-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm), inset 0 0 0 0.5px var(--separator);
+}
+
+.file-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.file-card li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 4px;
+  border-bottom: 0.5px solid var(--separator);
+  color: var(--tint);
+}
+
+.file-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.file-size {
+  color: var(--text-2);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.file-note {
+  color: var(--text-2);
+  font-size: 14px;
+  text-align: center;
+}
+
+.button-secondary {
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--fill);
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 600;
+  transition: background 0.2s var(--ease), transform 0.15s var(--ease);
+}
+
+.button-secondary:hover {
+  background: var(--fill-strong);
+}
+
+.button-secondary:active {
+  transform: scale(0.97);
+}
+
+.privacy-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.privacy-note svg {
+  color: var(--green);
+}
