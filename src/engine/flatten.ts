@@ -1,4 +1,5 @@
-import { PDFDocument, StandardFonts, degrees, rgb, type PDFFont, type PDFImage } from '@cantoo/pdf-lib'
+import { StandardFonts, degrees, rgb, type PDFDocument, type PDFFont, type PDFImage } from '@cantoo/pdf-lib'
+import { loadPdf } from './load'
 import { displaySize, normalizeRotation, toPdfPoint, type PageBox } from './geometry'
 import { TEXT_BASELINE, TEXT_LINE_HEIGHT, type Overlay } from './overlays'
 
@@ -35,7 +36,13 @@ function encodable(font: PDFFont, text: string) {
  * are not modified.
  */
 export async function flattenOverlays(input: Uint8Array, overlays: Overlay[]): Promise<Uint8Array> {
-  const doc = await PDFDocument.load(input.slice(), { ignoreEncryption: true })
+  const doc = await loadPdf(input)
+  await drawOverlays(doc, overlays)
+  return doc.save()
+}
+
+/** Draws overlays onto an already-loaded document. */
+export async function drawOverlays(doc: PDFDocument, overlays: Overlay[]): Promise<void> {
   const pages = doc.getPages()
   let font: PDFFont | undefined
   const images = new Map<string, PDFImage>()
@@ -92,6 +99,4 @@ export async function flattenOverlays(input: Uint8Array, overlays: Overlay[]): P
       })
     }
   }
-
-  return doc.save()
 }

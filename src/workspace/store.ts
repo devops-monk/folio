@@ -1,7 +1,20 @@
 import { create } from 'zustand'
 import type { PDFDocumentLoadingTask, PDFDocumentProxy } from 'pdfjs-dist'
 import type { Overlay } from '../engine/overlays'
+import type { FieldValue } from '../engine/forms'
 import { describeOpenError, openPdf } from './pdf'
+import { readFormWidgets, type FormWidget } from './forms'
+
+export type { FormWidget }
+
+/** A spot on a page, as display fractions (used to place a signature into a signature field). */
+export interface PageSpot {
+  page: number
+  x: number
+  y: number
+  w: number
+  h: number
+}
 
 export interface PageInfo {
   /** Displayed (rotation-applied) size in PDF points. */
@@ -26,6 +39,19 @@ interface WorkspaceState {
   future: Overlay[][]
   selectedId: string | null
   editingId: string | null
+
+  /** Interactive form widgets found in the PDF. */
+  fields: FormWidget[]
+  /** Current value per field name. */
+  formValues: Record<string, FieldValue>
+  /** Names of fields the user changed (only these are written on export). */
+  changedFields: Record<string, true>
+  flattenForm: boolean
+  /** XFA forms are rendered by pdf.js but can't be filled here. */
+  xfa: boolean
+
+  /** Non-null while the signature sheet is open. */
+  signRequest: { target?: PageSpot } | null
 
   currentPage: number
   /** CSS pixels per PDF point. */
@@ -56,6 +82,11 @@ interface WorkspaceState {
   select: (id: string | null) => void
   setEditing: (id: string | null) => void
 
+  setField: (name: string, value: FieldValue) => void
+  setFlattenForm: (flatten: boolean) => void
+  requestSignature: (target?: PageSpot) => void
+  closeSignature: () => void
+
   setCurrentPage: (i: number) => void
   setFitScale: (scale: number) => void
   zoom: (factor: number) => void
@@ -74,6 +105,12 @@ const empty = {
   future: [],
   selectedId: null,
   editingId: null,
+  fields: [],
+  formValues: {},
+  changedFields: {},
+  flattenForm: false,
+  xfa: false,
+  signRequest: null,
   currentPage: 0,
   scale: 1,
   fit: true,
@@ -110,8 +147,17 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
         const vp = (await pdf.getPage(i)).getViewport({ scale: 1 })
         pages.push({ width: vp.width, height: vp.height })
       }
+      const { fields, values } = await readFormWidgets(pdf)
       if (mine !== generation) return
-      set({ status: 'ready', bytes, pdf, pages })
+      set({
+        status: 'ready',
+        bytes,
+        pdf,
+        pages,
+        fields,
+        formValues: values,
+        xfa: !!(pdf as unknown as { isPureXfa?: boolean }).isPureXfa,
+      })
     } catch (err) {
       if (mine !== generation) return
       console.error(err)
@@ -175,6 +221,15 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   select: (id) =>
     set((s) => ({ selectedId: id, editingId: s.editingId === id ? s.editingId : null })),
   setEditing: (id) => set({ editingId: id, ...(id ? { selectedId: id } : {}) }),
+
+  setField: (name, value) =>
+    set((s) => ({
+      formValues: { ...s.formValues, [name]: value },
+      changedFields: { ...s.changedFields, [name]: true },
+    })),
+  setFlattenForm: (flattenForm) => set({ flattenForm }),
+  requestSignature: (target) => set({ signRequest: { target } }),
+  closeSignature: () => set({ signRequest: null }),
 
   setCurrentPage: (i) => set({ currentPage: i }),
   setFitScale: (scale) => {

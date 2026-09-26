@@ -16,10 +16,12 @@ import {
 } from 'lucide-react'
 import type { ToolDef } from '../tools/registry'
 import type { Overlay } from '../engine/overlays'
+import type { PageSpot } from './store'
 import { useWorkspace } from './store'
 import { PageCanvas } from './PageCanvas'
 import { OverlayItem } from './OverlayItem'
 import { Inspector } from './Inspector'
+import { FormLayer } from './FormLayer'
 import { loadImageForPdf } from './images'
 import { SignatureSheet } from './signature/SignatureSheet'
 import type { SignatureImage } from './signature/render'
@@ -43,14 +45,16 @@ export default function Workspace({ file, tool, onClose }: Props) {
   // Warn before losing unsaved edits.
   useEffect(() => {
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (useWorkspace.getState().overlays.length) e.preventDefault()
+      const s = useWorkspace.getState()
+      if (s.overlays.length || Object.keys(s.changedFields).length) e.preventDefault()
     }
     window.addEventListener('beforeunload', onBeforeUnload)
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
   }, [])
 
   const close = () => {
-    const dirty = useWorkspace.getState().overlays.length > 0
+    const s = useWorkspace.getState()
+    const dirty = s.overlays.length > 0 || Object.keys(s.changedFields).length > 0
     if (!dirty || window.confirm('Discard your changes to this PDF?')) onClose()
   }
 
@@ -61,7 +65,7 @@ export default function Workspace({ file, tool, onClose }: Props) {
         <div className="ws-body">
           <Thumbnails />
           <Pages />
-          <Inspector />
+          <Inspector formTool={tool.id === 'fill-form'} />
         </div>
       ) : (
         <div className="ws-state">
@@ -88,7 +92,7 @@ function Toolbar({ onClose, autoSign }: { onClose: () => void; autoSign: boolean
   const imageInput = useRef<HTMLInputElement>(null)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
-  const [signing, setSigning] = useState(false)
+  const signing = ws.signRequest !== null
   const ready = ws.status === 'ready'
 
   // The Sign PDF tool opens the signature sheet as soon as the document is ready.
@@ -96,16 +100,39 @@ function Toolbar({ onClose, autoSign }: { onClose: () => void; autoSign: boolean
   useEffect(() => {
     if (autoSign && ready && !autoOpened.current) {
       autoOpened.current = true
-      setSigning(true)
+      // Documents with signature fields let the user pick the field instead.
+      const s = useWorkspace.getState()
+      if (!s.fields.some((f) => f.type === 'signature')) s.requestSignature()
     }
   }, [autoSign, ready])
 
   const insertSignature = (sig: SignatureImage) => {
-    setSigning(false)
-    const page = ws.pages[ws.currentPage]
+    const target: PageSpot | undefined = ws.signRequest?.target
+    ws.closeSignature()
+    const page = ws.pages[target?.page ?? ws.currentPage]
+    const aspect = (sig.height / sig.width) * (page.width / page.height) // h/w in page fractions
+    if (target) {
+      // Fit inside the signature field, centered.
+      let w = target.w
+      let h = w * aspect
+      if (h > target.h) {
+        h = target.h
+        w = h / aspect
+      }
+      ws.add({
+        id: crypto.randomUUID(),
+        kind: 'image',
+        src: sig.src,
+        page: target.page,
+        x: target.x + (target.w - w) / 2,
+        y: target.y + (target.h - h) / 2,
+        w,
+        h,
+      })
+      return
+    }
     const w = 0.28
-    const h = (w * page.width * (sig.height / sig.width)) / page.height
-    ws.add({ id: crypto.randomUUID(), kind: 'image', src: sig.src, ...placeOnCurrentPage(w, Math.min(h, 0.3)) })
+    ws.add({ id: crypto.randomUUID(), kind: 'image', src: sig.src, ...placeOnCurrentPage(w, Math.min(w * aspect, 0.3)) })
   }
 
   // New objects appear centered near the top third; if that spot is taken,
@@ -158,17 +185,18 @@ function Toolbar({ onClose, autoSign }: { onClose: () => void; autoSign: boolean
   }
 
   const download = async () => {
-    const { bytes, overlays, fileName } = useWorkspace.getState()
+    const { bytes, overlays, fileName, formValues, changedFields, flattenForm } = useWorkspace.getState()
     if (!bytes || saving) return
     setSaving(true)
     try {
       // pdf-lib is only needed at save time, so it loads on first download.
-      const { flattenOverlays } = await import('../engine/flatten')
-      const out = await flattenOverlays(bytes, overlays)
+      const { exportDocument } = await import('../engine/export')
+      const changed = Object.fromEntries(Object.keys(changedFields).map((k) => [k, formValues[k]]))
+      const out = await exportDocument(bytes, { overlays, formValues: changed, flattenForm })
       const url = URL.createObjectURL(new Blob([out as BlobPart], { type: 'application/pdf' }))
       const a = document.createElement('a')
       a.href = url
-      a.download = fileName.replace(/\.pdf$/i, '') + '-edited.pdf'
+      a.download = fileName.replace(/\.pdf$/i, '') + (Object.keys(changed).length ? '-filled.pdf' : '-edited.pdf')
       a.click()
       setTimeout(() => URL.revokeObjectURL(url), 10_000)
       flash('Downloaded')
@@ -231,7 +259,7 @@ function Toolbar({ onClose, autoSign }: { onClose: () => void; autoSign: boolean
         addText()
       } else if (key === 's' && !mod) {
         e.preventDefault()
-        setSigning(true)
+        s.requestSignature()
       }
     }
     window.addEventListener('keydown', onKey)
@@ -257,7 +285,7 @@ function Toolbar({ onClose, autoSign }: { onClose: () => void; autoSign: boolean
       <div className="ws-toolbar-group ws-tools" aria-label="Insert">
         <button
           className="tb-button labeled"
-          onClick={() => setSigning(true)}
+          onClick={() => ws.requestSignature()}
           disabled={!ready}
           aria-label="Sign"
           title="Add signature (S)"
@@ -327,7 +355,7 @@ function Toolbar({ onClose, autoSign }: { onClose: () => void; autoSign: boolean
       {/* Portaled: the toolbar's backdrop-filter would otherwise trap position: fixed. */}
       {signing &&
         createPortal(
-          <SignatureSheet onInsert={insertSignature} onClose={() => setSigning(false)} />,
+          <SignatureSheet onInsert={insertSignature} onClose={ws.closeSignature} />,
           document.body,
         )}
       {toast &&
@@ -394,6 +422,7 @@ function Pages() {
   const overlays = useWorkspace((s) => s.overlays)
   const scale = useWorkspace((s) => s.scale)
   const fit = useWorkspace((s) => s.fit)
+  const hasFields = useWorkspace((s) => s.fields.length > 0)
   const scrollerRef = useRef<HTMLDivElement>(null)
 
   // Fit-to-width: recompute when the scroller resizes or fit mode is re-enabled.
@@ -455,7 +484,8 @@ function Pages() {
             style={{ width: w, height: h }}
             aria-label={`Page ${i + 1}`}
           >
-            <PageCanvas pdf={pdf} index={i} scale={scale} />
+            <PageCanvas pdf={pdf} index={i} scale={scale} hideForms={hasFields} />
+            {hasFields && <FormLayer page={i} pageW={w} pageH={h} />}
             {overlays
               .filter((o) => o.page === i)
               .map((o) => (

@@ -59,3 +59,32 @@ describe('flattenOverlays', () => {
     expect(out.byteLength).toBeGreaterThan(input.byteLength)
   })
 })
+
+describe('exportDocument with forms', () => {
+  it('fills text, checkbox, radio and dropdown fields, and can flatten', async () => {
+    const { exportDocument } = await import('./export')
+    const src = await PDFDocument.create()
+    const page = src.addPage([612, 792])
+    const form = src.getForm()
+    form.createTextField('name').addToPage(page, { x: 50, y: 700, width: 200, height: 20 })
+    form.createCheckBox('agree').addToPage(page, { x: 50, y: 660, width: 14, height: 14 })
+    const radio = form.createRadioGroup('plan')
+    radio.addOptionToPage('basic', page, { x: 50, y: 620, width: 14, height: 14 })
+    radio.addOptionToPage('pro', page, { x: 90, y: 620, width: 14, height: 14 })
+    const dd = form.createDropdown('country')
+    dd.addOptions(['India', 'UK'])
+    dd.addToPage(page, { x: 50, y: 580, width: 100, height: 20 })
+    const input = await src.save()
+
+    const values = { name: 'Abhay Singh', agree: true, plan: 'pro', country: 'UK' }
+    const filled = await PDFDocument.load(await exportDocument(input, { overlays: [], formValues: values, flattenForm: false }))
+    const f = filled.getForm()
+    expect(f.getTextField('name').getText()).toBe('Abhay Singh')
+    expect(f.getCheckBox('agree').isChecked()).toBe(true)
+    expect(f.getRadioGroup('plan').getSelected()).toBe('pro')
+    expect(f.getDropdown('country').getSelected()).toEqual(['UK'])
+
+    const flat = await PDFDocument.load(await exportDocument(input, { overlays: [], formValues: values, flattenForm: true }))
+    expect(flat.getForm().getFields()).toHaveLength(0)
+  })
+})

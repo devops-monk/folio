@@ -1,4 +1,4 @@
-import { Copy, Minus, MousePointerClick, Plus, Trash2 } from 'lucide-react'
+import { Copy, Minus, MousePointerClick, Plus, TextCursorInput, Trash2 } from 'lucide-react'
 import type { Overlay } from '../engine/overlays'
 import { useWorkspace } from './store'
 
@@ -13,15 +13,24 @@ function nextFontSize(size: number, dir: 1 | -1) {
 }
 
 /** Properties of the selected object. A side panel on desktop, a bottom sheet on phones. */
-export function Inspector() {
+export function Inspector({ formTool = false }: { formTool?: boolean }) {
   const selected = useWorkspace((s) => s.overlays.find((o) => o.id === s.selectedId))
   const current = useWorkspace((s) => s.currentPage)
   const total = useWorkspace((s) => s.pages.length)
+  const fieldCount = useWorkspace((s) => s.fields.filter((f) => f.type !== 'signature').length)
+  const xfa = useWorkspace((s) => s.xfa)
 
   return (
-    <aside className="ws-inspector" data-open={selected ? true : undefined} aria-label="Inspector">
+    <aside
+      className="ws-inspector"
+      data-open={selected || (fieldCount > 0 && !xfa) ? true : undefined}
+      data-compact={!selected && fieldCount > 0 ? true : undefined}
+      aria-label="Inspector"
+    >
       {selected ? (
         <SelectedPanel o={selected} />
+      ) : fieldCount > 0 || formTool || xfa ? (
+        <FormPanel fieldCount={fieldCount} xfa={xfa} current={current} total={total} />
       ) : (
         <div className="insp-empty">
           <MousePointerClick size={26} strokeWidth={1.8} aria-hidden />
@@ -32,6 +41,46 @@ export function Inspector() {
         </div>
       )}
     </aside>
+  )
+}
+
+function FormPanel({ fieldCount, xfa, current, total }: { fieldCount: number; xfa: boolean; current: number; total: number }) {
+  const flatten = useWorkspace((s) => s.flattenForm)
+  const changed = useWorkspace((s) => Object.keys(s.changedFields).length)
+  const setFlatten = useWorkspace((s) => s.setFlattenForm)
+
+  if (xfa) {
+    return (
+      <div className="insp-empty">
+        <TextCursorInput size={26} strokeWidth={1.8} aria-hidden />
+        <p>This is an XFA form, which browsers can’t fill. Use the Text tool to type onto the page instead.</p>
+      </div>
+    )
+  }
+  if (!fieldCount) {
+    return (
+      <div className="insp-empty">
+        <TextCursorInput size={26} strokeWidth={1.8} aria-hidden />
+        <p>This PDF has no fillable fields. Use Text to type anywhere on the page, and Sign to add a signature.</p>
+        <p className="insp-page">
+          Page {current + 1} of {total}
+        </p>
+      </div>
+    )
+  }
+  return (
+    <div className="insp-panel">
+      <h2 className="insp-title insp-wide">Form</h2>
+      <p className="insp-hint insp-wide">
+        {fieldCount} {fieldCount === 1 ? 'field' : 'fields'} · {changed} filled in. Press Tab to jump to the next field.
+      </p>
+      <label className="sig-keep insp-switch">
+        <input type="checkbox" checked={flatten} onChange={(e) => setFlatten(e.target.checked)} />
+        <span className="switch" aria-hidden />
+        Lock fields when downloading
+      </label>
+      <p className="insp-hint insp-wide">Locked (flattened) forms can’t be changed by whoever receives them.</p>
+    </div>
   )
 }
 

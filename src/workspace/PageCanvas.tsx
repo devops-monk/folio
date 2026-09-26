@@ -12,10 +12,15 @@ interface Props {
   scale: number
   /** Margin at which rendering starts before the page scrolls into view. */
   rootMargin?: string
+  /** Skip drawing form-field appearances (live inputs are layered on top instead). */
+  hideForms?: boolean
 }
 
+// pdf.js AnnotationMode.ENABLE_FORMS: render annotations except interactive form widgets.
+const ANNOTATION_MODE_ENABLE_FORMS = 2
+
 /** Renders one PDF page to a canvas, lazily, once it approaches the viewport. */
-export function PageCanvas({ pdf, index, scale, rootMargin = '600px' }: Props) {
+export function PageCanvas({ pdf, index, scale, rootMargin = '600px', hideForms = false }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [visible, setVisible] = useState(false)
 
@@ -50,6 +55,7 @@ export function PageCanvas({ pdf, index, scale, rootMargin = '600px' }: Props) {
         canvas: off,
         viewport,
         transform: ratio !== 1 ? [ratio, 0, 0, ratio, 0, 0] : undefined,
+        ...(hideForms ? { annotationMode: ANNOTATION_MODE_ENABLE_FORMS } : {}),
       })
       task.promise.then(
         () => {
@@ -68,7 +74,7 @@ export function PageCanvas({ pdf, index, scale, rootMargin = '600px' }: Props) {
       cancelled = true
       task?.cancel()
     }
-  }, [pdf, index, scale, visible])
+  }, [pdf, index, scale, visible, hideForms])
 
   return <canvas ref={canvasRef} className="page-canvas" aria-hidden />
 }
