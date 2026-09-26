@@ -235,7 +235,8 @@ test('ocr adds searchable text', async ({ page }) => {
   const external: string[] = []
   page.on('request', (r) => {
     const u = new URL(r.url())
-    if (!['localhost', '127.0.0.1'].includes(u.hostname) && u.protocol.startsWith('http')) external.push(r.url())
+    const own = new URL(process.env.BASE_URL ?? 'http://localhost:4173/').hostname
+    if (![own, 'localhost', '127.0.0.1'].includes(u.hostname) && u.protocol.startsWith('http')) external.push(r.url())
   })
   // An image-only page (a "scan"): real text rasterized in the browser, no text layer.
   await page.goto('#/')
