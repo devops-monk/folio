@@ -36,6 +36,8 @@ export interface RectOverlay extends OverlayBase {
   kind: 'rect'
   fill: string
   opacity: number
+  /** Redaction: content underneath is destroyed on export (page is rasterized). */
+  redact?: boolean
 }
 
 export type Overlay = TextOverlay | ImageOverlay | RectOverlay

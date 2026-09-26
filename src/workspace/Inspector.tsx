@@ -86,7 +86,7 @@ function FormPanel({ fieldCount, xfa, current, total }: { fieldCount: number; xf
 
 function SelectedPanel({ o }: { o: Overlay }) {
   const { update, remove, add } = useWorkspace.getState()
-  const title = o.kind === 'text' ? 'Text' : o.kind === 'image' ? 'Image' : 'Shape'
+  const title = o.kind === 'text' ? 'Text' : o.kind === 'image' ? 'Image' : o.redact ? 'Redaction' : 'Shape'
 
   return (
     <div className="insp-panel">
@@ -116,7 +116,14 @@ function SelectedPanel({ o }: { o: Overlay }) {
         </>
       )}
 
-      {o.kind === 'rect' && (
+      {o.kind === 'rect' && o.redact && (
+        <p className="insp-hint">
+          Everything under this box is permanently removed when you download. The page is flattened into an image, so
+          its other text can no longer be selected.
+        </p>
+      )}
+
+      {o.kind === 'rect' && !o.redact && (
         <>
           <Swatches label="Fill" colors={FILL_COLORS} value={o.fill} onPick={(fill) => update(o.id, { fill })} />
           <div className="insp-row">

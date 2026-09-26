@@ -29,3 +29,4 @@ playwright-report/
 
 # Copied from node_modules at build time
 public/pdfjs/
+public/ocr/

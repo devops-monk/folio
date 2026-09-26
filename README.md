@@ -5,15 +5,20 @@
 Folio is a free, Apple-style PDF toolkit that runs entirely in your browser: sign, fill forms,
 merge, split, compress, convert and more. Files are processed on your device and never uploaded.
 
-## Status
+## Tools
 
-- **Milestone 1 — done:** design system, tool catalog, home page, tool pages with
-  drag-and-drop, light/dark theme, GitHub Pages deployment.
-- **Milestone 2 — done:** the editing workspace — page viewer with thumbnails and zoom,
-  movable/resizable text, images, whiteout and highlight boxes, undo/redo, and download of the
-  edited PDF. Live in the **Edit PDF** tool.
+All 22 tools work entirely in the browser:
 
-Next up: Sign PDF and Fill PDF Form. See [PLAN.md](PLAN.md) for the full roadmap.
+| Category | Tools |
+| --- | --- |
+| Sign & Fill | Sign PDF (draw / type / upload, saved signatures), Fill PDF Form (lock fields option) |
+| Organize | Merge, Split, Organize Pages (multi-file, drag to reorder), Remove Pages, Extract Pages, Rotate |
+| Optimize | Compress (keeps text selectable; Extreme rasterizes), OCR (self-hosted Tesseract, English), Repair |
+| Convert | Image to PDF, PDF to Image (JPG/PNG, 72–300 dpi), Scan to PDF (camera + document filter) |
+| Edit | Edit PDF (text, images, whiteout, highlight), Watermark, Page Numbers, Crop |
+| Security | Protect (AES-256), Unlock, Redact (true redaction: pages are flattened), Compare |
+
+Not included, because they'd need a server: inviting others to sign, Office ↔ PDF conversion, AI features.
 
 ### Workspace shortcuts
 

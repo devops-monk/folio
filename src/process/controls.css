@@ -1,0 +1,259 @@
+/* Shared form controls for tool option panels. */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  padding: 20px;
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm), inset 0 0 0 0.5px var(--separator);
+}
+
+.card-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.field-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.field-hint {
+  font-size: 13px;
+  color: var(--text-2);
+  text-align: right;
+}
+
+.segmented {
+  display: flex;
+  padding: 2px;
+  border-radius: 9px;
+  background: var(--fill);
+}
+
+.segmented button {
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.segmented button[aria-checked="true"],
+.segmented button[aria-selected="true"] {
+  background: var(--surface);
+  box-shadow: var(--shadow-sm), 0 0 0 0.5px var(--separator);
+}
+
+.seg-full button {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.swatches.left {
+  justify-content: flex-start;
+}
+
+.swatch {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s var(--spring);
+}
+
+.swatch:hover {
+  transform: scale(1.1);
+}
+
+.swatch[aria-checked="true"] {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15), 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+}
+
+.text-input,
+.number-input input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--fill);
+  font-size: 16px;
+  outline: none;
+  transition: box-shadow 0.15s var(--ease);
+}
+
+.text-input:focus,
+.number-input input:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.text-input[aria-invalid="true"] {
+  box-shadow: 0 0 0 2px var(--red);
+}
+
+.number-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 160px;
+}
+
+.number-input span {
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.slider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider input {
+  flex: 1;
+  height: 28px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+.slider input::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent) var(--p), var(--fill-strong) var(--p));
+}
+
+.slider input::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent) var(--p), var(--fill-strong) var(--p));
+}
+
+.slider input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  margin-top: -9px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), 0 0 0 0.5px rgba(0, 0, 0, 0.1);
+}
+
+.slider input::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.slider-value {
+  min-width: 48px;
+  text-align: right;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+
+.run-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 -16px;
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  background: var(--bar);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-top: 0.5px solid var(--separator);
+}
+
+.run-bar-info {
+  font-size: 14px;
+  color: var(--text-2);
+  min-width: 0;
+}
+
+.run-button {
+  margin-left: auto;
+  min-width: 140px;
+  display: inline-grid;
+  place-items: center;
+}
+
+.button-primary:disabled {
+  opacity: 0.45;
+  box-shadow: none;
+  cursor: default;
+  filter: none;
+  transform: none;
+}
+
+.button-primary .spin {
+  color: inherit;
+}
+
+.notice {
+  font-size: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+}
+
+.notice-error {
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 10%, transparent);
+}
+
+.notice-info {
+  color: var(--text-2);
+  background: var(--fill);
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

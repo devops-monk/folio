@@ -105,7 +105,7 @@ export const tools: ToolDef[] = [
     accept: PDF,
     multiple: true,
     phase: 1,
-    ready: false,
+    ready: true,
   },
   {
     id: 'split-pdf',
@@ -117,7 +117,7 @@ export const tools: ToolDef[] = [
     accept: PDF,
     multiple: false,
     phase: 1,
-    ready: false,
+    ready: true,
   },
   {
     id: 'organize-pdf',
@@ -129,7 +129,7 @@ export const tools: ToolDef[] = [
     accept: PDF,
     multiple: true,
     phase: 1,
-    ready: false,
+    ready: true,
   },
   {
     id: 'remove-pages',
@@ -141,7 +141,7 @@ export const tools: ToolDef[] = [
     accept: PDF,
     multiple: false,
     phase: 1,
-    ready: false,
+    ready: true,
   },
   {
     id: 'extract-pages',
@@ -153,7 +153,7 @@ export const tools: ToolDef[] = [
     accept: PDF,
     multiple: false,
     phase: 1,
-    ready: false,
+    ready: true,
   },
   {
     id: 'rotate-pdf',
@@ -163,9 +163,9 @@ export const tools: ToolDef[] = [
     icon: RotateCw,
     keywords: ['turn', 'orientation', 'landscape', 'portrait'],
     accept: PDF,
-    multiple: true,
+    multiple: false,
     phase: 1,
-    ready: false,
+    ready: true,
   },
 
   // Optimize
@@ -179,7 +179,7 @@ export const tools: ToolDef[] = [
     accept: PDF,
     multiple: true,
     phase: 2,
-    ready: false,
+    ready: true,
   },
   {
     id: 'ocr-pdf',
@@ -191,7 +191,7 @@ export const tools: ToolDef[] = [
     accept: PDF,
     multiple: false,
     phase: 2,
-    ready: false,
+    ready: true,
   },
   {
     id: 'repair-pdf',
@@ -203,7 +203,7 @@ export const tools: ToolDef[] = [
     accept: PDF,
     multiple: false,
     phase: 3,
-    ready: false,
+    ready: true,
   },
 
   // Convert
@@ -217,7 +217,7 @@ export const tools: ToolDef[] = [
     accept: IMAGES,
     multiple: true,
     phase: 1,
-    ready: false,
+    ready: true,
   },
   {
     id: 'pdf-to-jpg',
@@ -229,19 +229,19 @@ export const tools: ToolDef[] = [
     accept: PDF,
     multiple: false,
     phase: 1,
-    ready: false,
+    ready: true,
   },
   {
     id: 'scan-to-pdf',
     name: 'Scan to PDF',
-    description: 'Use your camera to capture documents with auto crop.',
+    description: 'Snap documents with your camera and clean them up into a PDF.',
     category: 'convert',
     icon: ScanLine,
     keywords: ['camera', 'photo', 'document scanner'],
     accept: IMAGES,
     multiple: true,
     phase: 3,
-    ready: false,
+    ready: true,
   },
 
   // Edit
@@ -266,9 +266,9 @@ export const tools: ToolDef[] = [
     icon: Droplets,
     keywords: ['stamp', 'confidential', 'draft', 'logo'],
     accept: PDF,
-    multiple: true,
+    multiple: false,
     phase: 2,
-    ready: false,
+    ready: true,
   },
   {
     id: 'page-numbers',
@@ -280,7 +280,7 @@ export const tools: ToolDef[] = [
     accept: PDF,
     multiple: false,
     phase: 2,
-    ready: false,
+    ready: true,
   },
   {
     id: 'crop-pdf',
@@ -292,7 +292,7 @@ export const tools: ToolDef[] = [
     accept: PDF,
     multiple: false,
     phase: 2,
-    ready: false,
+    ready: true,
   },
 
   // Security
@@ -306,7 +306,7 @@ export const tools: ToolDef[] = [
     accept: PDF,
     multiple: false,
     phase: 3,
-    ready: false,
+    ready: true,
   },
   {
     id: 'unlock-pdf',
@@ -318,7 +318,7 @@ export const tools: ToolDef[] = [
     accept: PDF,
     multiple: false,
     phase: 3,
-    ready: false,
+    ready: true,
   },
   {
     id: 'redact-pdf',
@@ -330,7 +330,8 @@ export const tools: ToolDef[] = [
     accept: PDF,
     multiple: false,
     phase: 3,
-    ready: false,
+    ready: true,
+    workspace: true,
   },
   {
     id: 'compare-pdf',
@@ -342,7 +343,7 @@ export const tools: ToolDef[] = [
     accept: PDF,
     multiple: true,
     phase: 3,
-    ready: false,
+    ready: true,
   },
 ]
 

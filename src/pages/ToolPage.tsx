@@ -3,8 +3,23 @@ import { Link, useParams } from 'react-router-dom'
 import { ChevronLeft, FileText, ShieldCheck } from 'lucide-react'
 import { getCategory, getTool, type ToolDef } from '../tools/registry'
 import { DropZone } from '../components/DropZone'
+import { ProcessView } from '../process/ProcessView'
+import { panels } from '../tools/panels'
 import { NotFound } from './NotFound'
 import './ToolPage.css'
+
+// Tools whose panels show page grids or previews get a wider layout.
+const WIDE = new Set([
+  'split-pdf',
+  'organize-pdf',
+  'remove-pages',
+  'extract-pages',
+  'rotate-pdf',
+  'watermark-pdf',
+  'page-numbers',
+  'crop-pdf',
+  'compare-pdf',
+])
 
 // Loaded on demand so pdf.js and pdf-lib stay out of the home page bundle.
 const Workspace = lazy(() => import('../workspace/Workspace'))
@@ -44,7 +59,11 @@ function ToolView({ tool }: { tool: ToolDef }) {
   }
 
   return (
-    <div className="tool-page container" style={{ '--tint': tint } as CSSProperties}>
+    <div
+      className="tool-page container"
+      data-wide={files.length > 0 && WIDE.has(tool.id) ? true : undefined}
+      style={{ '--tint': tint } as CSSProperties}
+    >
       <Link to="/" className="back-link">
         <ChevronLeft size={20} strokeWidth={2.4} aria-hidden />
         All tools
@@ -60,6 +79,8 @@ function ToolView({ tool }: { tool: ToolDef }) {
 
       {files.length === 0 ? (
         <DropZone accept={tool.accept} multiple={tool.multiple} onFiles={setFiles} />
+      ) : panels[tool.id] ? (
+        <ProcessView tool={tool} files={files} setFiles={setFiles} Panel={panels[tool.id]} onReset={() => setFiles([])} />
       ) : (
         <section className="file-card" aria-label="Selected files">
           <ul>
@@ -71,11 +92,6 @@ function ToolView({ tool }: { tool: ToolDef }) {
               </li>
             ))}
           </ul>
-          {!tool.ready && (
-            <p className="file-note">
-              The {tool.name} workspace is on its way. Your file stayed on this device.
-            </p>
-          )}
           <button className="button-secondary" onClick={() => setFiles([])}>
             Choose different files
           </button>

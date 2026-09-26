@@ -3,6 +3,37 @@
   padding-top: 16px;
 }
 
+.tool-page[data-wide] {
+  max-width: 1100px;
+}
+
+/* Once a file is chosen, the header gets compact so the options are visible. */
+.tool-page:has(.process) .tool-header,
+.tool-page:has(.result) .tool-header {
+  flex-direction: row;
+  justify-content: center;
+  padding: 8px 0 20px;
+  gap: 12px;
+}
+
+.tool-page:has(.process) .tool-header p,
+.tool-page:has(.result) .tool-header p {
+  display: none;
+}
+
+.tool-page:has(.process) .tool-header-icon,
+.tool-page:has(.result) .tool-header-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  margin: 0;
+}
+
+.tool-page:has(.process) .tool-header h1,
+.tool-page:has(.result) .tool-header h1 {
+  font-size: 26px;
+}
+
 .back-link {
   display: inline-flex;
   align-items: center;

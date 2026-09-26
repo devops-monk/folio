@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   Download,
+  Eraser,
   Highlighter,
   ImagePlus,
   LoaderCircle,
@@ -60,7 +61,7 @@ export default function Workspace({ file, tool, onClose }: Props) {
 
   return (
     <div className="workspace" role="application" aria-label={`${tool.name} workspace`}>
-      <Toolbar onClose={close} autoSign={tool.id === 'sign-pdf'} />
+      <Toolbar onClose={close} autoSign={tool.id === 'sign-pdf'} redactTool={tool.id === 'redact-pdf'} />
       {status === 'ready' ? (
         <div className="ws-body">
           <Thumbnails />
@@ -87,7 +88,7 @@ export default function Workspace({ file, tool, onClose }: Props) {
 
 /* ─── Toolbar ───────────────────────────────────────────────────── */
 
-function Toolbar({ onClose, autoSign }: { onClose: () => void; autoSign: boolean }) {
+function Toolbar({ onClose, autoSign, redactTool }: { onClose: () => void; autoSign: boolean; redactTool: boolean }) {
   const ws = useWorkspace()
   const imageInput = useRef<HTMLInputElement>(null)
   const [saving, setSaving] = useState(false)
@@ -161,10 +162,10 @@ function Toolbar({ onClose, autoSign }: { onClose: () => void; autoSign: boolean
     ws.setEditing(o.id)
   }
 
-  const addRect = (fill: string, opacity: number) => {
+  const addRect = (fill: string, opacity: number, redact = false) => {
     const page = ws.pages[ws.currentPage]
     const h = (0.04 * page.width) / page.height
-    ws.add({ id: crypto.randomUUID(), kind: 'rect', fill, opacity, ...placeOnCurrentPage(0.3, h) })
+    ws.add({ id: crypto.randomUUID(), kind: 'rect', fill, opacity, redact, ...placeOnCurrentPage(0.3, h) })
   }
 
   const addImage = async (f: File) => {
@@ -192,11 +193,14 @@ function Toolbar({ onClose, autoSign }: { onClose: () => void; autoSign: boolean
       // pdf-lib is only needed at save time, so it loads on first download.
       const { exportDocument } = await import('../engine/export')
       const changed = Object.fromEntries(Object.keys(changedFields).map((k) => [k, formValues[k]]))
-      const out = await exportDocument(bytes, { overlays, formValues: changed, flattenForm })
+      const pageImages = await burnRedactions()
+      const out = await exportDocument(bytes, { overlays, formValues: changed, flattenForm, pageImages })
       const url = URL.createObjectURL(new Blob([out as BlobPart], { type: 'application/pdf' }))
       const a = document.createElement('a')
       a.href = url
-      a.download = fileName.replace(/\.pdf$/i, '') + (Object.keys(changed).length ? '-filled.pdf' : '-edited.pdf')
+      a.download =
+        fileName.replace(/\.pdf$/i, '') +
+        (pageImages.length ? '-redacted.pdf' : Object.keys(changed).length ? '-filled.pdf' : '-edited.pdf')
       a.click()
       setTimeout(() => URL.revokeObjectURL(url), 10_000)
       flash('Downloaded')
@@ -257,6 +261,9 @@ function Toolbar({ onClose, autoSign }: { onClose: () => void; autoSign: boolean
       } else if (key === 't' && !mod) {
         e.preventDefault()
         addText()
+      } else if (key === 'r' && !mod && redactTool) {
+        e.preventDefault()
+        addRect('#000000', 1, true)
       } else if (key === 's' && !mod) {
         e.preventDefault()
         s.requestSignature()
@@ -283,6 +290,18 @@ function Toolbar({ onClose, autoSign }: { onClose: () => void; autoSign: boolean
       </div>
 
       <div className="ws-toolbar-group ws-tools" aria-label="Insert">
+        {redactTool && (
+          <button
+            className="tb-button labeled"
+            onClick={() => addRect('#000000', 1, true)}
+            disabled={!ready}
+            aria-label="Redact"
+            title="Black out an area permanently (R)"
+          >
+            <Eraser size={18} />
+            <span>Redact</span>
+          </button>
+        )}
         <button
           className="tb-button labeled"
           onClick={() => ws.requestSignature()}
@@ -367,6 +386,29 @@ function Toolbar({ onClose, autoSign }: { onClose: () => void; autoSign: boolean
         )}
     </header>
   )
+}
+
+/**
+ * Renders every page that has redaction boxes to an image with the boxes
+ * painted in, so the covered text and images no longer exist in the file.
+ */
+async function burnRedactions() {
+  const { pdf, overlays, pages } = useWorkspace.getState()
+  const redactions = overlays.filter((o) => o.kind === 'rect' && o.redact)
+  if (!pdf || !redactions.length) return []
+  const { renderPage, canvasBytes } = await import('../engine/raster')
+  const result = []
+  for (const page of [...new Set(redactions.map((r) => r.page))]) {
+    const { width, height } = pages[page]
+    const canvas = await renderPage(pdf, page, 200 / 72)
+    const ctx = canvas.getContext('2d')!
+    ctx.fillStyle = '#000'
+    for (const r of redactions.filter((x) => x.page === page)) {
+      ctx.fillRect(r.x * canvas.width, r.y * canvas.height, r.w * canvas.width, r.h * canvas.height)
+    }
+    result.push({ page, jpg: await canvasBytes(canvas, 'image/jpeg', 0.9), width, height })
+  }
+  return result
 }
 
 /* ─── Thumbnails ────────────────────────────────────────────────── */
