@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
@@ -6,4 +7,11 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   base: './',
   plugins: [react()],
+  build: {
+    // pdf-lib and pdf.js are large but lazy-loaded only when a tool needs them.
+    chunkSizeWarningLimit: 700,
+  },
+  test: {
+    include: ['src/**/*.test.ts'],
+  },
 })

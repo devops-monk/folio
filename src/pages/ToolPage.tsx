@@ -1,10 +1,13 @@
-import { useEffect, useState, type CSSProperties } from 'react'
+import { lazy, Suspense, useEffect, useState, type CSSProperties } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ChevronLeft, FileText, ShieldCheck } from 'lucide-react'
 import { getCategory, getTool, type ToolDef } from '../tools/registry'
 import { DropZone } from '../components/DropZone'
 import { NotFound } from './NotFound'
 import './ToolPage.css'
+
+// Loaded on demand so pdf.js and pdf-lib stay out of the home page bundle.
+const Workspace = lazy(() => import('../workspace/Workspace'))
 
 function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`
@@ -31,6 +34,14 @@ function ToolView({ tool }: { tool: ToolDef }) {
 
   const Icon = tool.icon
   const tint = getCategory(tool.category).tint
+
+  if (tool.ready && tool.workspace && files[0]) {
+    return (
+      <Suspense fallback={null}>
+        <Workspace file={files[0]} tool={tool} onClose={() => setFiles([])} />
+      </Suspense>
+    )
+  }
 
   return (
     <div className="tool-page container" style={{ '--tint': tint } as CSSProperties}>

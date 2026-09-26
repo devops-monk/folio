@@ -7,9 +7,24 @@ merge, split, compress, convert and more. Files are processed on your device and
 
 ## Status
 
-Milestone 1 (scaffold) is done: design system, tool catalog, home page, tool pages with
-drag-and-drop, light/dark theme and GitHub Pages deployment. The tools themselves land in the
-following milestones. See [PLAN.md](PLAN.md) for the full roadmap.
+- **Milestone 1 — done:** design system, tool catalog, home page, tool pages with
+  drag-and-drop, light/dark theme, GitHub Pages deployment.
+- **Milestone 2 — done:** the editing workspace — page viewer with thumbnails and zoom,
+  movable/resizable text, images, whiteout and highlight boxes, undo/redo, and download of the
+  edited PDF. Live in the **Edit PDF** tool.
+
+Next up: Sign PDF and Fill PDF Form. See [PLAN.md](PLAN.md) for the full roadmap.
+
+### Workspace shortcuts
+
+| Keys | Action |
+| --- | --- |
+| `T` | Add text |
+| `⌘Z` / `⇧⌘Z` | Undo / redo |
+| `⌫` | Delete selection |
+| Arrow keys (`⇧` for 10×) | Nudge selection |
+| `⌘+` / `⌘−` / `⌘0` | Zoom in / out / fit width |
+| `⌘S` | Download |
 
 ## Develop
 
@@ -18,6 +33,8 @@ npm install
 npm run dev      # http://localhost:5173
 npm run build    # production build in dist/
 npm run lint
+npm test         # unit tests (Vitest)
+npm run test:e2e # browser tests (Playwright, uses your installed Chrome)
 ```
 
 ## Deploy

@@ -58,6 +58,8 @@ export interface ToolDef {
   phase: 1 | 2 | 3
   /** Flipped to true once the tool's workspace is implemented. */
   ready: boolean
+  /** Opens the page editor workspace once a file is chosen. */
+  workspace?: boolean
 }
 
 const PDF = 'application/pdf,.pdf'
@@ -244,14 +246,15 @@ export const tools: ToolDef[] = [
   {
     id: 'edit-pdf',
     name: 'Edit PDF',
-    description: 'Add text, images, shapes, highlights and freehand drawing.',
+    description: 'Add text, images, highlights and whiteout boxes to any page.',
     category: 'edit',
     icon: SquarePen,
-    keywords: ['annotate', 'text', 'draw', 'highlight', 'comment'],
+    keywords: ['annotate', 'text', 'draw', 'highlight', 'comment', 'whiteout'],
     accept: PDF,
     multiple: false,
     phase: 2,
-    ready: false,
+    ready: true,
+    workspace: true,
   },
   {
     id: 'watermark-pdf',
